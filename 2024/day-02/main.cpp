@@ -1,50 +1,47 @@
-#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
 
 using namespace std;
 
-int main()
+void readInput(vector<vector<int>> &list)
 {
-    vector<vector<int>> list;
-
-    {
-        ifstream inputFile("input");
-        string line;
-        for (size_t i = 0; getline(inputFile, line); i++) {
-            list.push_back({});
-            stringstream stream(line);
-            int value;
-            while (stream >> value) {
-                list[i].push_back(value);
-            }
-            cout << endl;
+    string line;
+    while (getline(cin, line)) {
+        list.push_back({});
+        stringstream stream(line);
+        int value;
+        while (stream >> value) {
+            list.back().push_back(value);
         }
     }
+}
 
-    // Part one
+int calculateNumberOfSafeReports(const vector<vector<int>> &list)
+{
     int numberOfSafeReports = 0;
     for (vector<int> report : list) {
         bool safe = true;
-        bool increasing = report[0] < report[1];
-        int previousLevel = report[0];
-        for (size_t i = 1; i < report.size(); i++) {
-            int currentLevel = report[i];
-            if (increasing) {
-                if (previousLevel >= currentLevel || currentLevel - previousLevel > 3) {
-                    safe = false;
-                    break;
-                }
-            } else {
-                if (previousLevel <= currentLevel || previousLevel - currentLevel > 3) {
-                    safe = false;
-                    break;
-                }
+
+        int directionOfChange = (report[0] < report[1]) ? 1 : -1;
+        for (size_t i = 0; i < report.size() - 1; i++) {
+            int levelDifference = (report[i + 1] - report[i]) * directionOfChange;
+
+            if (levelDifference <= 0 || levelDifference > 3) {
+                safe = false;
+                break;
             }
-            previousLevel = currentLevel;
         }
         numberOfSafeReports += safe;
     }
-    cout << "Number of safe reports: " << numberOfSafeReports << endl;
+    return numberOfSafeReports;
+}
+
+int main()
+{
+    vector<vector<int>> list;
+    readInput(list);
+
+    // Part one
+    cout << "Number of safe reports: " << calculateNumberOfSafeReports(list) << endl;
 }
