@@ -23,15 +23,39 @@ bool isNumber(const string &potentialNumber)
     return true;
 }
 
-string getNextValidInstruction(string &line)
+string getNextValidInstruction(string &line, const bool considerConditionals, bool &doMultiplication)
 {
     while (true) {
         {
-            size_t startPosition = line.find("mul(");
-            if (startPosition == string::npos) {
+            size_t mulPosition = line.find("mul(");
+            if (mulPosition == string::npos) {
                 return "";
             }
-            line.erase(0, startPosition);
+
+            if (considerConditionals) {
+                size_t doPosition = line.find("do()");
+                size_t dontPosition = line.find("don't()");
+                if ((doPosition < mulPosition) && (dontPosition < mulPosition)) {
+                    if (doPosition > dontPosition) {
+                        doMultiplication = true;
+                    } else {
+                        doMultiplication = false;
+                    }
+                } else {
+                    if (doPosition < mulPosition) {
+                        doMultiplication = true;
+                    } else if (dontPosition < mulPosition) {
+                        doMultiplication = false;
+                    }
+                }
+            }
+
+            line.erase(0, mulPosition);
+        }
+
+        if (considerConditionals && !doMultiplication) {
+            line.erase(0, 4);
+            continue;
         }
 
         size_t commaPosition = line.find(',');
@@ -74,20 +98,34 @@ int getInstructionResult(const string &instruction)
     return number1 * number2;
 }
 
-int main()
+int getResult(vector<string> lines, const bool considerConditionals)
 {
-    vector<string> lines = readInput();
-    int finalResult = 0;
+    int result = 0;
+    bool doMultiplication = true;
 
     for (string &line : lines) {
         while (true) {
-            string instruction = getNextValidInstruction(line);
+            string instruction = getNextValidInstruction(line,
+                                                         considerConditionals,
+                                                         doMultiplication);
             if (instruction == "") {
                 break;
             }
-            finalResult += getInstructionResult(instruction);
+            result += getInstructionResult(instruction);
         }
     }
 
-    cout << "Sum of all the multiplication: " << finalResult << endl;
+    return result;
+}
+
+int main()
+{
+    vector<string> lines = readInput();
+
+    // Part one
+    cout << "Sum of all the multiplication: " << getResult(lines, false) << endl;
+
+    // Part two
+    cout << "Sum of all the multiplication (when taking the conditional statements into account): "
+         << getResult(lines, true) << endl;
 }
