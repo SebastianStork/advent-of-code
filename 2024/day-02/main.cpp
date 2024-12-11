@@ -4,8 +4,9 @@
 
 using namespace std;
 
-void readInput(vector<vector<int>> &list)
+vector<vector<int>> readInput()
 {
+    vector<vector<int>> list;
     string line;
     while (getline(cin, line)) {
         list.push_back({});
@@ -15,6 +16,7 @@ void readInput(vector<vector<int>> &list)
             list.back().push_back(value);
         }
     }
+    return list;
 }
 
 int getIndexOfUnsafeValue(const vector<int> &report)
@@ -67,8 +69,7 @@ int calculateNumberOfSafeReports(const vector<vector<int>> &list, const bool app
 
 int main()
 {
-    vector<vector<int>> list;
-    readInput(list);
+    vector<vector<int>> list = readInput();
 
     // Part one
     cout << "Number of safe reports: " << calculateNumberOfSafeReports(list, false) << endl;

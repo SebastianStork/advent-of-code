@@ -23,8 +23,10 @@ bool isNumber(const string &potentialNumber)
     return true;
 }
 
-string getNextValidInstruction(string &line, const bool considerConditionals, bool &doMultiplication)
+string getNextValidInstruction(string &line, bool *doMultiplication = nullptr)
 {
+    const bool considerConditionals = doMultiplication;
+
     while (true) {
         {
             size_t mulPosition = line.find("mul(");
@@ -35,17 +37,14 @@ string getNextValidInstruction(string &line, const bool considerConditionals, bo
             if (considerConditionals) {
                 size_t doPosition = line.find("do()");
                 size_t dontPosition = line.find("don't()");
+
                 if ((doPosition < mulPosition) && (dontPosition < mulPosition)) {
-                    if (doPosition > dontPosition) {
-                        doMultiplication = true;
-                    } else {
-                        doMultiplication = false;
-                    }
+                    *doMultiplication = doPosition > dontPosition;
                 } else {
                     if (doPosition < mulPosition) {
-                        doMultiplication = true;
+                        *doMultiplication = true;
                     } else if (dontPosition < mulPosition) {
-                        doMultiplication = false;
+                        *doMultiplication = false;
                     }
                 }
             }
@@ -53,7 +52,7 @@ string getNextValidInstruction(string &line, const bool considerConditionals, bo
             line.erase(0, mulPosition);
         }
 
-        if (considerConditionals && !doMultiplication) {
+        if (considerConditionals && !*doMultiplication) {
             line.erase(0, 4);
             continue;
         }
@@ -98,19 +97,36 @@ int getInstructionResult(const string &instruction)
     return number1 * number2;
 }
 
-int getResult(vector<string> lines, const bool considerConditionals)
+int calculateSumIgnoringConditionals(vector<string> lines)
+{
+    int result = 0;
+
+    for (string &line : lines) {
+        while (true) {
+            string instruction = getNextValidInstruction(line);
+            if (instruction.empty()) {
+                break;
+            }
+
+            result += getInstructionResult(instruction);
+        }
+    }
+
+    return result;
+}
+
+int calculateSumConsideringConditionals(vector<string> lines)
 {
     int result = 0;
     bool doMultiplication = true;
 
     for (string &line : lines) {
         while (true) {
-            string instruction = getNextValidInstruction(line,
-                                                         considerConditionals,
-                                                         doMultiplication);
-            if (instruction == "") {
+            string instruction = getNextValidInstruction(line, &doMultiplication);
+            if (instruction.empty()) {
                 break;
             }
+
             result += getInstructionResult(instruction);
         }
     }
@@ -123,9 +139,9 @@ int main()
     vector<string> lines = readInput();
 
     // Part one
-    cout << "Sum of all the multiplication: " << getResult(lines, false) << endl;
+    cout << "Sum of all the multiplications: " << calculateSumIgnoringConditionals(lines) << endl;
 
     // Part two
-    cout << "Sum of all the multiplication (when taking the conditional statements into account): "
-         << getResult(lines, true) << endl;
+    cout << "Sum of all the multiplications (when taking the conditional statements into account): "
+         << calculateSumConsideringConditionals(lines) << endl;
 }
