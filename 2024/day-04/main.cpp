@@ -18,6 +18,11 @@ bool wordIsXmas(const string &word)
     return word == "XMAS" || word == "SAMX";
 }
 
+bool wordIsMas(const string &word)
+{
+    return word == "MAS" || word == "SAM";
+}
+
 int xmasCountAt(const vector<string> &matrix, const size_t rowIndex, const size_t colIndex)
 {
     const size_t numberOfRows = matrix.size();
@@ -61,6 +66,34 @@ int xmasCountAt(const vector<string> &matrix, const size_t rowIndex, const size_
     return xmasCount;
 }
 
+bool crossMasExistsAt(const vector<string> &matrix, const size_t rowIndex, const size_t colIndex)
+{
+    const size_t numberOfRows = matrix.size();
+    const size_t numberOfCols = matrix[0].size();
+
+    if (rowIndex + 2 >= numberOfRows || colIndex + 2 >= numberOfCols) {
+        return false;
+    }
+
+    string downDiagonalWord;
+    for (size_t i = 0; i <= 2; i++) {
+        downDiagonalWord += matrix[rowIndex + i][colIndex + i];
+    }
+    if (!wordIsMas(downDiagonalWord)) {
+        return false;
+    }
+
+    string upDiagonalWord;
+    for (size_t i = 0; i <= 2; i++) {
+        upDiagonalWord += matrix[rowIndex + (2 - i)][colIndex + i];
+    }
+    if (!wordIsMas(upDiagonalWord)) {
+        return false;
+    }
+
+    return true;
+}
+
 int main()
 {
     const vector<string> matrix = readInput();
@@ -68,13 +101,18 @@ int main()
     const size_t numberOfCols = matrix[0].size();
 
     int numberOfXmasOccurrences = 0;
+    int numberOfCrossMasOccurrences = 0;
 
     for (size_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
         for (size_t colIndex = 0; colIndex < numberOfCols; colIndex++) {
             numberOfXmasOccurrences += xmasCountAt(matrix, rowIndex, colIndex);
+            numberOfCrossMasOccurrences += crossMasExistsAt(matrix, rowIndex, colIndex);
         }
     }
 
     // Part one
     cout << "Number of XMAS occurrences: " << numberOfXmasOccurrences << endl;
+
+    // Part two
+    cout << "Number of X-MAS occurrences: " << numberOfCrossMasOccurrences << endl;
 }
