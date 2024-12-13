@@ -18,7 +18,6 @@
               gdb
               clang-tools
               qt6.full
-              qtcreator
             ];
           };
 
