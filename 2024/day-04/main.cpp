@@ -13,50 +13,68 @@ vector<string> readInput()
     return lines;
 }
 
+bool wordIsXmas(const string &word)
+{
+    return word == "XMAS" || word == "SAMX";
+}
+
+int xmasCountAt(const vector<string> &matrix, const size_t rowIndex, const size_t colIndex)
+{
+    const size_t numberOfRows = matrix.size();
+    const size_t numberOfCols = matrix[0].size();
+
+    int xmasCount = 0;
+
+    // Horizontal check
+    if (colIndex + 3 < numberOfCols) {
+        string horizontalWord = matrix[rowIndex].substr(colIndex, 4);
+        xmasCount += wordIsXmas(horizontalWord);
+    }
+
+    // Vertical check
+    if (rowIndex + 3 < numberOfRows) {
+        string verticalWord;
+        for (size_t i = 0; i <= 3; i++) {
+            verticalWord += matrix[rowIndex + i][colIndex];
+        }
+        xmasCount += wordIsXmas(verticalWord);
+    }
+
+    // Down-diagonal check
+    if (rowIndex + 3 < numberOfRows && colIndex + 3 < numberOfCols) {
+        string downDiagonalWord;
+        for (size_t i = 0; i <= 3; i++) {
+            downDiagonalWord += matrix[rowIndex + i][colIndex + i];
+        }
+        xmasCount += wordIsXmas(downDiagonalWord);
+    }
+
+    // Up-diagonal check
+    if (rowIndex + 3 < numberOfRows && colIndex + 3 < numberOfCols) {
+        string upDiagonalWord;
+        for (size_t i = 0; i <= 3; i++) {
+            upDiagonalWord += matrix[rowIndex + (3 - i)][colIndex + i];
+        }
+        xmasCount += wordIsXmas(upDiagonalWord);
+    }
+
+    return xmasCount;
+}
+
 int main()
 {
-    int numberOfOccurences = 0;
     const vector<string> matrix = readInput();
+    const size_t numberOfRows = matrix.size();
+    const size_t numberOfCols = matrix[0].size();
 
-    // Horizontal
-    for (size_t rowIndex = 0; rowIndex < matrix.size(); rowIndex++) {
-        for (size_t colIndex = 0; colIndex < matrix[0].size() - 3; colIndex++) {
-            const string nextWord = matrix[rowIndex].substr(colIndex, 4);
-            if (nextWord == "XMAS" || nextWord == "SAMX") {
-                numberOfOccurences++;
-            }
+    int numberOfXmasOccurrences = 0;
+
+    for (size_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
+        for (size_t colIndex = 0; colIndex < numberOfCols; colIndex++) {
+            numberOfXmasOccurrences += xmasCountAt(matrix, rowIndex, colIndex);
         }
     }
 
-    // Vertical
-    for (size_t colIndex = 0; colIndex < matrix[0].size(); colIndex++) {
-        for (size_t rowIndex = 0; rowIndex < matrix.size() - 3; rowIndex++) {
-            string nextWord;
-            for (size_t i = 0; i <= 3; i++) {
-                nextWord += matrix[rowIndex + i][colIndex];
-            }
-            if (nextWord == "XMAS" || nextWord == "SAMX") {
-                numberOfOccurences++;
-            }
-        }
-    }
-
-    // Diagonal
-    for (size_t rowIndex = 0; rowIndex < matrix.size() - 3; rowIndex++) {
-        for (size_t colIndex = 0; colIndex < matrix[0].size() - 3; colIndex++) {
-            string nextWord1, nextWord2;
-            for (size_t i = 0, j = 3; i <= 3; i++, j--) {
-                nextWord1 += matrix[rowIndex + i][colIndex + i];
-                nextWord2 += matrix[rowIndex + j][colIndex + i];
-            }
-            if (nextWord1 == "XMAS" || nextWord1 == "SAMX") {
-                numberOfOccurences++;
-            }
-            if (nextWord2 == "XMAS" || nextWord2 == "SAMX") {
-                numberOfOccurences++;
-            }
-        }
-    }
-
-    cout << "Number of XMAS occurences: " << numberOfOccurences << endl;
+    // Part one
+    cout << "Number of XMAS occurrences: " << numberOfXmasOccurrences << endl;
 }
