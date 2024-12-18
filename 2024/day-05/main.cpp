@@ -36,13 +36,6 @@ vector<vector<int>> readManuals()
     return manuals;
 }
 
-void sortRules(vector<pair<int, int>> &rules)
-{
-    sort(rules.begin(), rules.end(), [](const pair<int, int> &a, const pair<int, int> &b) {
-        return a.first < b.first;
-    });
-}
-
 bool isCorrectPageOrdering(const int firstPage,
                            const int secondPage,
                            const vector<pair<int, int>> &rules)
@@ -82,15 +75,23 @@ int main()
     sort(rules.begin(), rules.end());
 
     int sumOfCorrectMiddlePages = 0;
+    int sumOfCorrectedMiddlePages = 0;
 
     for (const vector<int> &pages : manuals) {
         const vector<int> properlyOrderedPages = getProperlyOrderedPages(pages, rules);
         if (pages == properlyOrderedPages) {
             sumOfCorrectMiddlePages += getMiddlePageNumber(pages);
+        } else {
+            sumOfCorrectedMiddlePages += getMiddlePageNumber(properlyOrderedPages);
         }
     }
 
     // Part one
     cout << "Sum of the middle page numbers of all correctly ordered manuals: "
          << sumOfCorrectMiddlePages << endl;
+
+    // Part two
+    cout
+        << "Sum of the middle page numbers of all incorrectly ordered manuals after ordering them: "
+        << sumOfCorrectedMiddlePages << endl;
 }
