@@ -15,7 +15,7 @@ vector<pair<int, int>> readRules()
         }
         int number1 = stoi(line.substr(0, 2));
         int number2 = stoi(line.substr(3, 2));
-        rules.push_back(make_pair(number1, number2));
+        rules.push_back({number1, number2});
     }
     return rules;
 }
@@ -25,71 +25,51 @@ vector<vector<int>> readManuals()
     vector<vector<int>> manuals;
     string line;
     while (getline(cin, line)) {
-        manuals.push_back({});
         stringstream inStream(line);
+        vector<int> pages;
         string page;
         while (getline(inStream, page, ',')) {
-            manuals.back().push_back(stoi(page));
+            pages.push_back(stoi(page));
         }
+        manuals.push_back(pages);
     }
     return manuals;
 }
 
-vector<pair<int, int>> getSortedLessThanRules(vector<pair<int, int>> rules)
+void sortRules(vector<pair<int, int>> &rules)
 {
-    sort(rules.begin(), rules.end(), [](auto a, auto b) { return a.first < b.first; });
-    return rules;
+    sort(rules.begin(), rules.end(), [](const pair<int, int> &a, const pair<int, int> &b) {
+        return a.first < b.first;
+    });
 }
 
-vector<pair<int, int>> getSortedGreaterThanRules(vector<pair<int, int>> rules)
+bool isCorrectPageOrdering(const int firstPage,
+                           const int secondPage,
+                           const vector<pair<int, int>> &rules)
 {
-    for (pair<int, int> &rule : rules) {
-        swap(rule.first, rule.second);
-    }
-    sort(rules.begin(), rules.end(), [](auto a, auto b) { return a.first < b.first; });
-    return rules;
-}
+    auto it = lower_bound(rules.begin(),
+                          rules.end(),
+                          secondPage,
+                          [](const pair<int, int> &a, int b) { return a.first < b; });
 
-enum class Comparison { lessThan, greaterThan };
-
-bool pageIsFollowingRules(const vector<int> &pages,
-                          const size_t indexOfPageToCheck,
-                          const vector<pair<int, int>> &rules,
-                          const Comparison ruleType)
-{
-    size_t indexOfFirstRule = lower_bound(rules.begin(),
-                                          rules.end(),
-                                          pages[indexOfPageToCheck],
-                                          [](pair<int, int> a, int b) { return a.first < b; })
-                              - rules.begin();
-
-    if (indexOfFirstRule == rules.size()) {
-        return true;
-    }
-
-    size_t pagesStart, pagesEnd;
-    if (ruleType == Comparison::lessThan) {
-        pagesStart = 0;
-        pagesEnd = indexOfPageToCheck;
-    } else {
-        pagesStart = indexOfPageToCheck;
-        pagesEnd = pages.size();
-    }
-
-    for (size_t pageIndex = pagesStart; pageIndex < pagesEnd; pageIndex++) {
-        for (size_t ruleIndex = indexOfFirstRule;
-             ruleIndex < rules.size() && rules[ruleIndex].first == pages[indexOfPageToCheck];
-             ruleIndex++) {
-            if (pages[pageIndex] == rules[ruleIndex].second) {
-                return false;
-            }
+    for (; it != rules.end() && it->first == secondPage; ++it) {
+        if (it->second == firstPage) {
+            return false;
         }
     }
 
     return true;
 }
 
-int getMiddlePageNumber(vector<int> pages)
+vector<int> getProperlyOrderedPages(vector<int> pages, const vector<pair<int, int>> &rules)
+{
+    sort(pages.begin(), pages.end(), [&rules](int a, int b) {
+        return isCorrectPageOrdering(a, b, rules);
+    });
+    return pages;
+}
+
+int getMiddlePageNumber(const vector<int> &pages)
 {
     size_t middleIndex = pages.size() / 2;
     return pages[middleIndex];
@@ -97,29 +77,20 @@ int getMiddlePageNumber(vector<int> pages)
 
 int main()
 {
-    vector<pair<int, int>> unsortedRules = readRules();
+    vector<pair<int, int>> rules = readRules();
     vector<vector<int>> manuals = readManuals();
+    sort(rules.begin(), rules.end());
 
-    vector<pair<int, int>> lessThanRules = getSortedLessThanRules(unsortedRules);
-    vector<pair<int, int>> greaterThanRules = getSortedGreaterThanRules(unsortedRules);
-
-    int middlePageNumberSum = 0;
+    int sumOfCorrectMiddlePages = 0;
 
     for (const vector<int> &pages : manuals) {
-        bool correctlyOrdered = true;
-        for (size_t i = 0; i < pages.size(); i++) {
-            if (!pageIsFollowingRules(pages, i, lessThanRules, Comparison::lessThan)
-                || !pageIsFollowingRules(pages, i, greaterThanRules, Comparison::greaterThan)) {
-                correctlyOrdered = false;
-                break;
-            }
-        }
-        if (correctlyOrdered) {
-            middlePageNumberSum += getMiddlePageNumber(pages);
+        const vector<int> properlyOrderedPages = getProperlyOrderedPages(pages, rules);
+        if (pages == properlyOrderedPages) {
+            sumOfCorrectMiddlePages += getMiddlePageNumber(pages);
         }
     }
 
     // Part one
     cout << "Sum of the middle page numbers of all correctly ordered manuals: "
-         << middlePageNumberSum << endl;
+         << sumOfCorrectMiddlePages << endl;
 }
