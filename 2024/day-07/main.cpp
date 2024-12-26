@@ -31,28 +31,43 @@ void readInput(vector<Equation> &equations)
     }
 }
 
-long computeEquationResult(const vector<int> &numbers, const size_t operatorMask)
+long computeEquationResult(const vector<int> &numbers,
+                           size_t operatorMask,
+                           const size_t operatorSpace)
 {
-    long testResult = numbers[0];
+    long currentResult = numbers[0];
 
-    for (size_t numberIndex = 1; numberIndex < numbers.size(); numberIndex++) {
-        if (operatorMask & (1 << (numberIndex - 1))) {
-            testResult += numbers[numberIndex];
-        } else {
-            testResult *= numbers[numberIndex];
+    for (size_t operatorIndex = 0; operatorIndex < numbers.size() - 1; operatorIndex++) {
+        size_t numberIndex = operatorIndex + 1;
+
+        int currentOperator = (operatorMask / static_cast<int>(pow(operatorSpace, operatorIndex)))
+                              % operatorSpace;
+
+        switch (currentOperator) {
+        case 0:
+            currentResult += numbers[numberIndex];
+            break;
+        case 1:
+            currentResult *= numbers[numberIndex];
+            break;
+        case 2:
+            currentResult = stol(to_string(currentResult) + to_string(numbers[numberIndex]));
+        default:
+            break;
         }
     }
 
-    return testResult;
+    return currentResult;
 }
 
-bool isValidEquation(const Equation &equation)
+bool isValidEquation(const Equation &equation, const size_t operatorSpace)
 {
-    const int operatorCount = equation.numbers.size() - 1;
-    const size_t operatorMaskLimit = pow(2, operatorCount) - 1;
+    const size_t operatorCount = equation.numbers.size() - 1;
+    const size_t maxOperatorMask = pow(operatorSpace, operatorCount) - 1;
 
-    for (size_t operatorMask = 0; operatorMask <= operatorMaskLimit; operatorMask++) {
-        if (computeEquationResult(equation.numbers, operatorMask) == equation.result) {
+    for (size_t operatorMask = 0; operatorMask <= maxOperatorMask; operatorMask++) {
+        if (computeEquationResult(equation.numbers, operatorMask, operatorSpace)
+            == equation.result) {
             return true;
         }
     }
@@ -65,11 +80,20 @@ int main()
     vector<Equation> equations;
     readInput(equations);
 
-    long totalCalibrationResult = 0;
+    long totalResult = 0;
+    long totalResultWithConcatenation = 0;
     for (const Equation &equation : equations) {
-        totalCalibrationResult += equation.result * isValidEquation(equation);
+        if (isValidEquation(equation, 2)) {
+            totalResult += equation.result;
+            totalResultWithConcatenation += equation.result;
+        } else if (isValidEquation(equation, 3)) {
+            totalResultWithConcatenation += equation.result;
+        }
     }
 
     // Part one
-    cout << "Total Calibration Result: " << totalCalibrationResult << endl;
+    cout << "Total calibration result: " << totalResult << endl;
+
+    // Part one
+    cout << "Total calibration result with concatenation: " << totalResultWithConcatenation << endl;
 }
