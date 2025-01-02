@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -23,27 +24,31 @@ void readInput(vector<string> &antennaMap, map<char, set<pair<int, int>>> &anten
     }
 }
 
-bool isInBounds(pair<int, int> location, const vector<string> &map)
+pair<int, int> getDirectionVector(const pair<int, int> &antenna1, const pair<int, int> &antenna2)
 {
-    return (location.first >= 0 && location.first < map.size())
-           && (location.second >= 0 && location.second < map[0].size());
+    return {antenna2.first - antenna1.first, antenna2.second - antenna1.second};
 }
 
-vector<pair<int, int>> getAntinodes(pair<int, int> antenna1,
-                                    pair<int, int> antenna2,
+bool isInBounds(const pair<int, int> &location, const vector<string> &map)
+{
+    return (location.first >= 0 && cmp_less(location.first, map.size()))
+           && (location.second >= 0 && cmp_less(location.second, map[0].size()));
+}
+
+vector<pair<int, int>> getAntinodes(const pair<int, int> &antenna1,
+                                    const pair<int, int> &antenna2,
                                     const vector<string> &antennaMap)
 {
     if (antenna1 == antenna2) {
         return {};
     }
 
-    pair<int, int> directionVector = {antenna2.first - antenna1.first,
-                                      antenna2.second - antenna1.second};
+    const pair<int, int> directionVector = getDirectionVector(antenna1, antenna2);
 
-    pair<int, int> antinode1 = {antenna2.first + directionVector.first,
-                                antenna2.second + directionVector.second};
-    pair<int, int> antinode2 = {antenna1.first - directionVector.first,
-                                antenna1.second - directionVector.second};
+    const pair<int, int> antinode1 = {antenna1.first - directionVector.first,
+                                      antenna1.second - directionVector.second};
+    const pair<int, int> antinode2 = {antenna2.first + directionVector.first,
+                                      antenna2.second + directionVector.second};
 
     vector<pair<int, int>> antinodes;
     if (isInBounds(antinode1, antennaMap)) {
@@ -55,6 +60,34 @@ vector<pair<int, int>> getAntinodes(pair<int, int> antenna1,
     return antinodes;
 }
 
+vector<pair<int, int>> getResonantHarmonicsAntinodes(const pair<int, int> &antenna1,
+                                                     const pair<int, int> &antenna2,
+                                                     const vector<string> &antennaMap)
+{
+    if (antenna1 == antenna2) {
+        return {};
+    }
+
+    const pair<int, int> directionVector = getDirectionVector(antenna1, antenna2);
+    vector<pair<int, int>> antinodes;
+
+    pair<int, int> antinode1 = antenna1;
+    do {
+        antinodes.push_back(antinode1);
+        antinode1.first -= directionVector.first;
+        antinode1.second -= directionVector.second;
+    } while (isInBounds(antinode1, antennaMap));
+
+    pair<int, int> antinode2 = antenna2;
+    do {
+        antinodes.push_back(antinode2);
+        antinode2.first += directionVector.first;
+        antinode2.second += directionVector.second;
+    } while (isInBounds(antinode2, antennaMap));
+
+    return antinodes;
+}
+
 int main()
 {
     vector<string> antennaMap;
@@ -62,13 +95,28 @@ int main()
     readInput(antennaMap, antennas);
 
     set<pair<int, int>> uniqueAntinodes;
+    set<pair<int, int>> uniqueResonantHarmonicsAntinodes;
+    set<pair<pair<int, int>, pair<int, int>>> consideredAntennaCombinations;
 
-    for (auto antennasWithSameFrequency : antennas) {
-        for (auto antenna1 : antennasWithSameFrequency.second) {
-            for (auto antenna2 : antennasWithSameFrequency.second) {
-                vector<pair<int, int>> foundAntinodes = getAntinodes(antenna1, antenna2, antennaMap);
+    for (const auto &antennasWithSameFrequency : antennas) {
+        for (const auto &antenna1 : antennasWithSameFrequency.second) {
+            for (const auto &antenna2 : antennasWithSameFrequency.second) {
+                const auto orderedPair = make_pair(min(antenna1, antenna2), max(antenna1, antenna2));
+                if (consideredAntennaCombinations.contains(orderedPair)) {
+                    continue;
+                }
+                consideredAntennaCombinations.insert(orderedPair);
+
+                const vector<pair<int, int>> foundAntinodes = getAntinodes(antenna1,
+                                                                           antenna2,
+                                                                           antennaMap);
                 for (pair<int, int> antinode : foundAntinodes) {
                     uniqueAntinodes.insert(antinode);
+                }
+                const vector<pair<int, int>> foundResonantHarmonicsAntinodes
+                    = getResonantHarmonicsAntinodes(antenna1, antenna2, antennaMap);
+                for (pair<int, int> antinode : foundResonantHarmonicsAntinodes) {
+                    uniqueResonantHarmonicsAntinodes.insert(antinode);
                 }
             }
         }
@@ -76,4 +124,8 @@ int main()
 
     // Part one
     cout << "Number of unique antinodes: " << uniqueAntinodes.size() << endl;
+
+    // Part two
+    cout << "Number of unique antinodes when taking resonant harmonics into account: "
+         << uniqueResonantHarmonicsAntinodes.size() << endl;
 }
