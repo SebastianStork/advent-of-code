@@ -8,18 +8,23 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      devShells.${system}.cpp =
-        pkgs.mkShell.override
-          {
-            stdenv = pkgs.clangStdenv;
-          }
-          {
-            packages = with pkgs; [
-              gdb
-              clang-tools
-              qt6.full
-            ];
-          };
+      devShells.${system} = {
+        cpp =
+          pkgs.mkShell.override
+            {
+              stdenv = pkgs.clangStdenv;
+            }
+            {
+              packages = with pkgs; [
+                gdb
+                clang-tools
+                qt6.full
+              ];
+            };
+        go = pkgs.mkShell {
+          packages = with pkgs; [ go ];
+        };
+      };
 
       formatter.${system} = pkgs.nixfmt-rfc-style;
     };
