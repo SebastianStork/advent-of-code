@@ -8,7 +8,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      devShells.${system}.qtcreator =
+      devShells.${system}.cpp =
         pkgs.mkShell.override
           {
             stdenv = pkgs.clangStdenv;
