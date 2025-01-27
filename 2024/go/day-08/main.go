@@ -102,12 +102,11 @@ func findAllAntinodes(antennas map[rune][]position, dimensions position) (unique
 				antenna2 := frequencyGroup[antenna2Index]
 
 				foundAntinodes := antennaPairAntinodes(antenna1, antenna2, dimensions)
-				foundResonantAntinodes := antennaPairResonantAntinodes(antenna1, antenna2, dimensions)
-
 				for _, antinode := range foundAntinodes {
 					uniqueAntinodes[antinode] = struct{}{}
 				}
 
+				foundResonantAntinodes := antennaPairResonantAntinodes(antenna1, antenna2, dimensions)
 				for _, antinode := range foundResonantAntinodes {
 					uniqueResonantAntinodes[antinode] = struct{}{}
 				}
