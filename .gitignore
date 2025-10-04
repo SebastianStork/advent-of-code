@@ -2,3 +2,4 @@
 *.pro.user*
 .idea/
 .direnv/
+**/target
