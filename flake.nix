@@ -20,7 +20,6 @@
           packages = with pkgs; [
             gdb
             clang-tools
-            qt6.full
           ];
         };
 
