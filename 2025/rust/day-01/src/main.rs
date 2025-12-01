@@ -1,5 +1,8 @@
 use std::fs::{self};
 
+const STARTING_POSITION: i32 = 50;
+const DIAL_RANGE: i32 = 100;
+
 fn main() {
     let rotations = read_rotations();
 
@@ -8,34 +11,26 @@ fn main() {
 }
 
 fn read_rotations() -> Vec<i32> {
-    let contents = fs::read_to_string("../../inputs/01.txt").unwrap();
-    let lines = contents.lines();
-
-    let mut rotations = vec![];
-
-    for line in lines {
-        let (direction, distance) = line.split_at(1);
-
-        let distance = distance.parse::<i32>().unwrap();
-
-        let rotation = match direction {
-            "L" => -distance,
-            "R" => distance,
-            _ => panic!(),
-        };
-
-        rotations.push(rotation);
-    }
-
-    rotations
+    fs::read_to_string("../../inputs/01.txt")
+        .unwrap()
+        .lines()
+        .map(|line| {
+            let distance = line[1..].parse::<i32>().unwrap();
+            if line.starts_with('L') {
+                -distance
+            } else {
+                distance
+            }
+        })
+        .collect()
 }
 
-fn count_zero_positions(rotations: &Vec<i32>) -> i32 {
+fn count_zero_positions(rotations: &[i32]) -> i32 {
     let mut counter = 0;
-    let mut position = 50;
+    let mut position = STARTING_POSITION;
 
     for rotation in rotations {
-        position = (position + rotation).rem_euclid(100);
+        position = (position + rotation).rem_euclid(DIAL_RANGE);
 
         if position == 0 {
             counter += 1;
@@ -45,14 +40,14 @@ fn count_zero_positions(rotations: &Vec<i32>) -> i32 {
     counter
 }
 
-fn count_zero_clicks(rotations: &Vec<i32>) -> i32 {
+fn count_zero_clicks(rotations: &[i32]) -> i32 {
     let mut counter = 0;
-    let mut position = 50;
+    let mut position = STARTING_POSITION;
 
     for rotation in rotations {
         position += rotation;
 
-        counter += (position / 100).abs();
+        counter += (position / DIAL_RANGE).abs();
         if position < 0 && position != *rotation {
             counter += 1;
         }
@@ -60,7 +55,7 @@ fn count_zero_clicks(rotations: &Vec<i32>) -> i32 {
             counter += 1;
         }
 
-        position = position.rem_euclid(100);
+        position = position.rem_euclid(DIAL_RANGE);
     }
 
     counter
