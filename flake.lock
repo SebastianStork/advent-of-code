@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "inputs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1764611941,
+        "narHash": "sha256-GEVJK9tSeNnGgYYRbjtYE/su75nxRvOm8h0Sf5GD70A=",
+        "ref": "refs/heads/main",
+        "rev": "5390449be22f56739e0840e35e46d54b1166886c",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/SebastianStork/advent-of-code-inputs.git"
+      },
+      "original": {
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/SebastianStork/advent-of-code-inputs.git"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1764522689,
@@ -18,6 +35,7 @@
     },
     "root": {
       "inputs": {
+        "inputs": "inputs",
         "nixpkgs": "nixpkgs",
         "rust-overlay": "rust-overlay"
       }

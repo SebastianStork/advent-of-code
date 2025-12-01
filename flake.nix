@@ -6,25 +6,42 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    inputs = {
+      url = "git+ssh://git@github.com/SebastianStork/advent-of-code-inputs.git?shallow=1";
+      flake = false;
+    };
   };
 
   outputs =
-    { nixpkgs, rust-overlay, ... }:
+    {
+      nixpkgs,
+      rust-overlay,
+      inputs,
+      ...
+    }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
       devShells.${system} = {
+        default = pkgs.mkShellNoCC {
+          packages = [ pkgs.stow ];
+          shellHook = ''
+            stow --dir=${inputs} --target=./. package
+          '';
+        };
+
         cpp = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
-          packages = with pkgs; [
-            gdb
-            clang-tools
+          packages = [
+            pkgs.gdb
+            pkgs.clang-tools
           ];
         };
 
         go = pkgs.mkShellNoCC {
-          packages = with pkgs; [ go ];
+          packages = [ pkgs.go ];
         };
 
         rust =
