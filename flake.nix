@@ -29,7 +29,9 @@
         default = pkgs.mkShellNoCC {
           packages = [ pkgs.stow ];
           shellHook = ''
-            stow --dir=${inputs} --target=./. package
+            mkdir --parents .nix/inputs
+            ln --symbolic --force --no-dereference "${inputs}" .nix/inputs/package-src
+            stow --dir=.nix/inputs --target=./. --restow package-src
           '';
         };
 
