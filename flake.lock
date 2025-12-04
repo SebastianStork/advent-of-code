@@ -3,10 +3,10 @@
     "inputs": {
       "flake": false,
       "locked": {
-        "lastModified": 1764767558,
-        "narHash": "sha256-AqEynDX4eu61liwLdGPzk0b6J9sE+dKWSpxfO+mZpBc=",
+        "lastModified": 1764840758,
+        "narHash": "sha256-GTN8SBnhvv6t2oDS1H85xcYAhafy8mpUQWSrCErhtgw=",
         "ref": "refs/heads/main",
-        "rev": "a1a4c48fcc3eddac81d35ce2030c887ac38f4002",
+        "rev": "415a59297c64d0448d22975ca5ad3d8ef064c9f0",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/SebastianStork/advent-of-code-inputs.git"
