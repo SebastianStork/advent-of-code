@@ -6,7 +6,7 @@ struct Range {
 }
 
 impl Range {
-    fn new(start: u64, end: u64) -> Range {
+    fn new(start: u64, end: u64) -> Self {
         Range { start, end }
     }
 
@@ -14,7 +14,11 @@ impl Range {
         num >= self.start && num <= self.end
     }
 
-    fn expand(&mut self, overlap: &Range) {
+    fn overlaps(&self, other: &Range) -> bool {
+        self.contains(other.start) || self.contains(other.end)
+    }
+
+    fn merge_with(&mut self, overlap: &Range) {
         if overlap.start < self.start {
             self.start = overlap.start;
         }
@@ -22,16 +26,21 @@ impl Range {
             self.end = overlap.end;
         }
     }
+
+    fn length(&self) -> u64 {
+        self.end - self.start + 1
+    }
 }
 
 fn main() {
     let (ranges, available_ids) = parse_input(&fs::read_to_string("../../inputs/05.txt").unwrap());
-    let ranges = compress(ranges);
+    let ranges = merge_overlapping_ranges(ranges);
 
     println!(
-        "How many of the available ingredient IDs are fresh? {}",
-        number_of_available_ids_in_rages(available_ids, ranges)
+        "Number of available IDs in ranges: {}",
+        count_available_ids_in_ranges(available_ids, &ranges)
     );
+    println!("Number of IDs in ranges: {}", count_ids_in_ranges(&ranges));
 }
 
 fn parse_input(contents: &str) -> (Vec<Range>, Vec<u64>) {
@@ -50,23 +59,17 @@ fn parse_input(contents: &str) -> (Vec<Range>, Vec<u64>) {
     (ranges, available_ids)
 }
 
-fn compress(mut ranges: Vec<Range>) -> Vec<Range> {
+fn merge_overlapping_ranges(mut ranges: Vec<Range>) -> Vec<Range> {
+    ranges.sort_by_key(|range| range.start);
+
     let mut compressed_ranges = vec![ranges.remove(0)];
 
     for range in ranges {
-        let mut is_integrated = false;
-        for compressed_range in &mut compressed_ranges {
-            if compressed_range.contains(range.start) && compressed_range.contains(range.end) {
-                is_integrated = true;
-                break;
-            }
-            if compressed_range.contains(range.start) || compressed_range.contains(range.end) {
-                compressed_range.expand(&range);
-                is_integrated = true;
-                break;
-            }
-        }
-        if !is_integrated {
+        let previous = compressed_ranges.last_mut().unwrap();
+
+        if previous.overlaps(&range) {
+            previous.merge_with(&range);
+        } else {
             compressed_ranges.push(range);
         }
     }
@@ -74,11 +77,15 @@ fn compress(mut ranges: Vec<Range>) -> Vec<Range> {
     compressed_ranges
 }
 
-fn number_of_available_ids_in_rages(available_ids: Vec<u64>, ranges: Vec<Range>) -> usize {
+fn count_available_ids_in_ranges(available_ids: Vec<u64>, ranges: &[Range]) -> usize {
     available_ids
         .iter()
         .filter(|id| ranges.iter().any(|range| range.contains(**id)))
         .count()
+}
+
+fn count_ids_in_ranges(ranges: &[Range]) -> u64 {
+    ranges.iter().map(|range| range.length()).sum()
 }
 
 #[cfg(test)]
@@ -102,8 +109,16 @@ mod tests {
     #[test]
     fn test_part1() {
         let (ranges, available_ids) = parse_input(TEST_INPUT);
-        let ranges = compress(ranges);
+        let ranges = merge_overlapping_ranges(ranges);
 
-        assert_eq!(number_of_available_ids_in_rages(available_ids, ranges), 3);
+        assert_eq!(count_available_ids_in_ranges(available_ids, &ranges), 3);
+    }
+
+    #[test]
+    fn test_part2() {
+        let (ranges, _) = parse_input(TEST_INPUT);
+        let ranges = merge_overlapping_ranges(merge_overlapping_ranges(ranges));
+
+        assert_eq!(count_ids_in_ranges(&ranges), 14);
     }
 }
