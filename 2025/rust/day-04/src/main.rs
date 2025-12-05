@@ -114,19 +114,11 @@ fn number_of_accessible_rolls(rolls: &[Rc<RefCell<Roll>>]) -> usize {
 }
 
 fn number_of_removeable_rolls(rolls: &[Rc<RefCell<Roll>>]) -> usize {
-    loop {
-        let deleted_any = rolls
-            .iter()
-            .filter(|roll| !roll.borrow().deleted)
-            .filter(|roll| roll.borrow().is_accessible())
-            .inspect(|roll| Roll::delete(roll))
-            .count()
-            > 0;
-
-        if !deleted_any {
-            break;
-        }
-    }
+    rolls
+        .iter()
+        .filter(|roll| !roll.borrow().deleted)
+        .filter(|roll| roll.borrow().is_accessible())
+        .for_each(Roll::delete);
 
     rolls.iter().filter(|roll| roll.borrow().deleted).count()
 }
